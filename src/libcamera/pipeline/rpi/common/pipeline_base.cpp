@@ -42,7 +42,9 @@ PixelFormat mbusCodeToPixelFormat(unsigned int code,
 {
 	BayerFormat bayer = BayerFormat::fromMbusCode(code);
 
-	ASSERT(bayer.isValid());
+	if (!bayer.isValid()) {
+		return PixelFormat();
+	}
 
 	bayer.packing = packingReq;
 	PixelFormat pix = bayer.toPixelFormat();
@@ -371,6 +373,7 @@ V4L2DeviceFormat PipelineHandlerBase::toV4L2DeviceFormat(const V4L2VideoDevice *
 {
 	unsigned int code = format.code;
 	const PixelFormat pix = mbusCodeToPixelFormat(code, packingReq);
+	ASSERT(pix.isValid());
 	V4L2DeviceFormat deviceFormat;
 
 	deviceFormat.fourcc = dev->toV4L2PixelFormat(pix);
@@ -955,6 +958,9 @@ V4L2SubdeviceFormat CameraData::findBestFormat(const Size &req, unsigned int bit
 		const unsigned int mbusCode = iter.first;
 		const PixelFormat format = mbusCodeToPixelFormat(mbusCode,
 								 BayerFormat::Packing::None);
+		if (!format.isValid()) {
+			continue;
+		}
 		const PixelFormatInfo &info = PixelFormatInfo::info(format);
 
 		for (const Size &size : iter.second) {
