@@ -191,6 +191,7 @@ protected:
 	unsigned int ispOutputTotal_;
 
 private:
+	void enumerateVideoDevices(MediaLink *link, const std::string &frontend, bool &frontendFound);
 	void checkRequestCompleted();
 };
 

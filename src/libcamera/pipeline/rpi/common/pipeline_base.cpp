@@ -1044,11 +1044,17 @@ void CameraData::freeBuffers()
  *          | Sensor2 |   | Sensor3 |
  *          +---------+   +---------+
  */
-void CameraData::enumerateVideoDevices(MediaLink *link, const std::string &frontend)
+void CameraData::enumerateVideoDevices(MediaLink *link, const std::string &frontend,
+				       bool &frontendFound)
 {
 	const MediaPad *sinkPad = link->sink();
 	const MediaEntity *entity = sinkPad->entity();
-	bool frontendFound = false;
+
+	/* Once we reach the Frontend entity, we are done. */
+	if (link->sink()->entity()->name() == frontend) {
+		frontendFound = true;
+		return;
+	}
 
 	/* We only deal with Video Mux and Bridge devices in cascade. */
 	if (entity->function() != MEDIA_ENT_F_VID_MUX &&
@@ -1082,25 +1088,24 @@ void CameraData::enumerateVideoDevices(MediaLink *link, const std::string &front
 	 * other Video Mux and Bridge devices.
 	 */
 	for (MediaLink *l : sourcePad->links()) {
-		enumerateVideoDevices(l, frontend);
-		/* Once we reach the Frontend entity, we are done. */
-		if (l->sink()->entity()->name() == frontend) {
-			frontendFound = true;
-			break;
-		}
+		enumerateVideoDevices(l, frontend, frontendFound);
 	}
+}
 
-	/* This identifies the end of our entity enumeration recursion. */
-	if (link->source()->entity()->function() == MEDIA_ENT_F_CAM_SENSOR) {
-		/*
-		 * If the frontend is not at the end of this cascade, we cannot
-		 * configure this topology automatically, so remove all entity
-		 * references.
-		 */
-		if (!frontendFound) {
-			LOG(RPI, Warning) << "Cannot automatically configure this MC topology!";
-			bridgeDevices_.clear();
-		}
+void CameraData::enumerateVideoDevices(MediaLink *link, const std::string &frontend)
+{
+	bool frontendFound = false;
+
+	enumerateVideoDevices(link, frontend, frontendFound);
+
+	/*
+	 * If the frontend is not at the end of this cascade, we cannot
+	 * configure this topology automatically, so remove all entity
+	 * references.
+	 */
+	if (!frontendFound) {
+		LOG(RPI, Warning) << "Cannot automatically configure this MC topology!";
+		bridgeDevices_.clear();
 	}
 }
 
