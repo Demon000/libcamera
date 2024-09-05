@@ -627,7 +627,6 @@ int PipelineHandlerBase::configure(Camera *camera, CameraConfiguration *config)
 					  << " pad " << sourcePad->index()
 					  << " with format  " << *sensorFormat
 					  << ": " << ret;
-			return ret;
 		}
 
 		LOG(RPI, Debug) << "Configured media link on device " << device->entity()->name()
