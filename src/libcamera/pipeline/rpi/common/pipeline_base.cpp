@@ -620,18 +620,18 @@ int PipelineHandlerBase::configure(Camera *camera, CameraConfiguration *config)
 		 * ought to read the source pad format and propagate it to the sink pad.
 		 */
 		link->setEnabled(true);
-		const MediaPad *sinkPad = link->sink();
-		ret = device->setFormat(sinkPad->index(), sensorFormat);
+		const MediaPad *sourcePad = link->source();
+		ret = device->setFormat(sourcePad->index(), sensorFormat);
 		if (ret) {
-			LOG(RPI, Error) << "Failed to set format on " << device->entity()->name()
-					<< " pad " << sinkPad->index()
-					<< " with format  " << *sensorFormat
-					<< ": " << ret;
+			LOG(RPI, Warning) << "Failed to set format on " << device->entity()->name()
+					  << " pad " << sourcePad->index()
+					  << " with format  " << *sensorFormat
+					  << ": " << ret;
 			return ret;
 		}
 
 		LOG(RPI, Debug) << "Configured media link on device " << device->entity()->name()
-				<< " on pad " << sinkPad->index();
+				<< " on pad " << sourcePad->index();
 	}
 
 	return 0;
