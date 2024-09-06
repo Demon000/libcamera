@@ -1457,6 +1457,8 @@ void IpaBase::applyFrameDurations(Duration minFrameDuration, Duration maxFrameDu
 
 	RPiController::AgcAlgorithm *agc = dynamic_cast<RPiController::AgcAlgorithm *>(
 		controller_.getAlgorithm("agc"));
+	if (!agc)
+		return;
 	agc->setMaxShutter(maxShutter);
 }
 
