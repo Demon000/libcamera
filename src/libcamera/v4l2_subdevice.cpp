@@ -1297,6 +1297,7 @@ int V4L2Subdevice::getFormat(const Stream &stream, V4L2SubdeviceFormat *format,
 int V4L2Subdevice::setFormat(const Stream &stream, V4L2SubdeviceFormat *format,
 			     Whence whence)
 {
+	LOG(V4L2, Info) << "Applying sensor format: " << *format;
 	struct v4l2_subdev_format subdevFmt = {};
 	subdevFmt.which = whence;
 	subdevFmt.pad = stream.pad;
@@ -1325,6 +1326,7 @@ int V4L2Subdevice::setFormat(const Stream &stream, V4L2SubdeviceFormat *format,
 	format->size.height = subdevFmt.format.height;
 	format->code = subdevFmt.format.code;
 	format->colorSpace = toColorSpace(subdevFmt.format);
+	LOG(V4L2, Info) << "Applied sensor format: " << *format;
 
 	return 0;
 }

@@ -1191,6 +1191,9 @@ PiSPCameraData::platformValidate(RPi::RPiCameraConfiguration *rpiConfig) const
 		/* The RAW stream size cannot exceed the sensor frame output - for now. */
 		if (rawStream->size != rpiConfig->sensorFormat_.size ||
 		    rawStream->pixelFormat != bayer.toPixelFormat()) {
+			LOG(RPI, Info) << "Adjusted "
+			    << rawStream->pixelFormat
+				<< " to " << bayer.toPixelFormat();
 			rawStream->size = rpiConfig->sensorFormat_.size;
 			rawStream->pixelFormat = bayer.toPixelFormat();
 			status = CameraConfiguration::Adjusted;
@@ -1415,10 +1418,12 @@ int PiSPCameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConf
 									 sensorFormatMod,
 									 BayerFormat::Packing::PISP1);
 		computeOptimalStride(cfeFormat);
+		LOG(RPI, Info) << "No raw streams: " << cfeFormat;
 	} else {
 		rawStreams[0].cfg->setStream(&cfe_[Cfe::Output0]);
 		cfe_[Cfe::Output0].setFlags(StreamFlag::External);
 		cfeFormat = rawStreams[0].format;
+		LOG(RPI, Info) << "Raw streams: " << cfeFormat;
 	}
 
 	/*

@@ -185,6 +185,7 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 	outStreams_.clear();
 
 	for (const auto &[index, cfg] : utils::enumerate(config_)) {
+		LOG(RPI, Error) << "Adding pixel format" << cfg.pixelFormat;
 		if (PipelineHandlerBase::isRaw(cfg.pixelFormat))
 			rawStreams_.emplace_back(index, &cfg);
 		else
@@ -203,6 +204,7 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 	Size sensorSize;
 
 	if (sensorConfig) {
+		LOG(RPI, Error) << "Use the application provided sensor configuration";
 		/* Use the application provided sensor configuration. */
 		bitDepth = sensorConfig->bitDepth;
 		sensorSize = sensorConfig->outputSize;
@@ -216,14 +218,25 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 		sensorSize = outStreams_[0].cfg->size;
 	}
 
+	LOG(RPI, Error) << "Find best format with depth: "
+			<< sensorConfig->bitDepth
+			<< ", size: "
+			<< sensorConfig->outputSize.width
+			<< "x"
+			<< sensorConfig->outputSize.height;
+
 	sensorFormat_ = data_->findBestFormat(sensorSize, bitDepth);
+
+	LOG(RPI, Debug) << "Found best format: " << sensorFormat_;
 
 	/*
 	 * If a sensor configuration has been requested, it should apply
 	 * without modifications.
 	 */
 	if (sensorConfig) {
+		LOG(RPI, Error) << "sensorFormat_.code: " << sensorFormat_.code;
 		BayerFormat bayer = BayerFormat::fromMbusCode(sensorFormat_.code);
+		LOG(RPI, Error) << "bayer: " << bayer;
 
 		if (bayer.bitDepth != sensorConfig->bitDepth ||
 		    sensorFormat_.size != sensorConfig->outputSize) {
@@ -245,7 +258,9 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 		 * to the user request.
 		 */
 
+		LOG(RPI, Error) << "rawStream->pixelFormat: " << rawStream->pixelFormat;
 		BayerFormat cfgBayer = BayerFormat::fromPixelFormat(rawStream->pixelFormat);
+
 		BayerFormat sensorBayer = BayerFormat::fromMbusCode(sensorFormat_.code);
 		if (cfgBayer.order != sensorBayer.order) {
 			cfgBayer.order = sensorBayer.order;
@@ -253,6 +268,7 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 		}
 
 		cfgBayer.order = data_->sensor_->bayerOrder(combinedTransform_, cfgBayer);
+		LOG(RPI, Error) << "cfgBayer: " << cfgBayer;
 
 		if (rawStream->pixelFormat != cfgBayer.toPixelFormat()) {
 			rawStream->pixelFormat = cfgBayer.toPixelFormat();
@@ -269,7 +285,9 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 
 	/* Further fixups on the RAW streams. */
 	for (auto &raw : rawStreams_) {
+		LOG(RPI, Error) << "before tryFormat: " << raw.format;
 		int ret = raw.dev->tryFormat(&raw.format);
+		LOG(RPI, Error) << "after tryFormat: " << raw.format;
 		if (ret)
 			return Invalid;
 
@@ -527,14 +545,18 @@ int PipelineHandlerBase::configure(Camera *camera, CameraConfiguration *config)
 	RPiCameraConfiguration *rpiConfig = static_cast<RPiCameraConfiguration *>(config);
 	V4L2SubdeviceFormat *sensorFormat = &rpiConfig->sensorFormat_;
 
+	LOG(RPI, Info) << "Applying sensor format: " << *sensorFormat;
 	if (rpiConfig->sensorConfig) {
+		LOG(RPI, Info) << "applyConfiguration";
 		ret = data->sensor_->applyConfiguration(*rpiConfig->sensorConfig,
 							rpiConfig->combinedTransform_,
 							sensorFormat);
 	} else {
+		LOG(RPI, Info) << "setFormat";
 		ret = data->sensor_->setFormat(sensorFormat,
 					       rpiConfig->combinedTransform_);
 	}
+	LOG(RPI, Info) << "Applied sensor format: " << *sensorFormat;
 	if (ret)
 		return ret;
 
@@ -1061,6 +1083,16 @@ void CameraData::enumerateVideoDevices(MediaLink *link, const std::string &front
 		frontendFound = true;
 		return;
 	}
+
+	LOG(RPI, Debug) << "Entering with link "
+			<< link->source()->entity()->name()
+			<< ":"
+			<< link->source()->index()
+			<< " -> "
+			<< link->sink()->entity()->name()
+			<< ":"
+			<< link->sink()->index();
+	LOG(RPI, Debug) << "Looking for frontend " << frontend;
 
 	/* We only deal with Video Mux and Bridge devices in cascade. */
 	if (entity->function() != MEDIA_ENT_F_VID_MUX &&
