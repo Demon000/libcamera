@@ -835,7 +835,7 @@ int CameraSensor::applyConfiguration(const SensorConfiguration &config,
 	std::vector<unsigned int> filteredCodes;
 	std::copy_if(mbusCodes_.begin(), mbusCodes_.end(),
 		     std::back_inserter(filteredCodes),
-		     [&config](unsigned int mbusCode) {
+		     [&config, &sensorFormat](unsigned int mbusCode) {
 			     BayerFormat bayer = BayerFormat::fromMbusCode(mbusCode);
 			     if (bayer.bitDepth == config.bitDepth)
 				     return true;
