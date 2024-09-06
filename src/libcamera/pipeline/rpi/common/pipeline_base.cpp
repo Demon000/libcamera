@@ -246,13 +246,7 @@ CameraConfiguration::Status RPiCameraConfiguration::validate()
 		 */
 
 		BayerFormat cfgBayer = BayerFormat::fromPixelFormat(rawStream->pixelFormat);
-		BayerFormat sensorBayer = BayerFormat::fromMbusCode(sensorFormat_.code);
-		if (cfgBayer.order != sensorBayer.order) {
-			cfgBayer.order = sensorBayer.order;
-			status = Adjusted;
-		}
-
-		cfgBayer.order = data_->sensor_->bayerOrder(combinedTransform_, cfgBayer);
+		cfgBayer.order = data_->sensor_->bayerOrder(combinedTransform_);
 
 		if (rawStream->pixelFormat != cfgBayer.toPixelFormat()) {
 			rawStream->pixelFormat = cfgBayer.toPixelFormat();
