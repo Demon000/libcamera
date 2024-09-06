@@ -837,7 +837,9 @@ int CameraSensor::applyConfiguration(const SensorConfiguration &config,
 		     std::back_inserter(filteredCodes),
 		     [&config, &sensorFormat](unsigned int mbusCode) {
 			     BayerFormat bayer = BayerFormat::fromMbusCode(mbusCode);
-			     if (bayer.bitDepth == config.bitDepth)
+		         BayerFormat sensorBayer = BayerFormat::fromMbusCode(sensorFormat->code);
+			     if (bayer.bitDepth == config.bitDepth &&
+				     bayer.order == sensorBayer.order)
 				     return true;
 			     return false;
 		     });
