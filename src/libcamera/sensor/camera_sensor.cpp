@@ -782,12 +782,10 @@ int CameraSensor::setFormat(V4L2SubdeviceFormat *format, Transform transform)
 			return ret;
 	}
 
-	LOG(CameraSensor, Info) << "Applying sensor format: " << *format;
 	/* Apply format on the subdev. */
 	int ret = subdev_->setFormat(pad_, format);
 	if (ret)
 		return ret;
-	LOG(CameraSensor, Info) << "Applied sensor format: " << *format;
 
 	subdev_->updateControlInfo();
 	return 0;
@@ -872,13 +870,10 @@ int CameraSensor::applyConfiguration(const SensorConfiguration &config,
 			break;
 		}
 	}
-
 	if (!subdevFormat.code) {
 		LOG(CameraSensor, Error) << "Invalid output size in sensor configuration";
 		return -EINVAL;
 	}
-
-	LOG(CameraSensor, Info) << "setFormat: " << subdevFormat;
 
 	int ret = setFormat(&subdevFormat, transform);
 	if (ret)
