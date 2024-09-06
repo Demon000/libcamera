@@ -19,10 +19,6 @@ public:
 	double gain(uint32_t gainCode) const override;
 	void getDelays(int &exposureDelay, int &gainDelay,
 		       int &vblankDelay, int &hblankDelay) const override;
-	unsigned int hideFramesStartup() const override;
-	unsigned int hideFramesModeSwitch() const override;
-	unsigned int mistrustFramesStartup() const override;
-	unsigned int mistrustFramesModeSwitch() const override;
 
 private:
 	/*
@@ -63,42 +59,6 @@ void CamHelperOv5640::getDelays(int &exposureDelay, int &gainDelay,
 	gainDelay = 2;
 	vblankDelay = 2;
 	hblankDelay = 2;
-}
-
-unsigned int CamHelperOv5640::hideFramesStartup() const
-{
-	/*
-	 * On startup, we get a couple of under-exposed frames which
-	 * we don't want shown.
-	 */
-	return 2;
-}
-
-unsigned int CamHelperOv5640::hideFramesModeSwitch() const
-{
-	/*
-	 * After a mode switch, we get a couple of under-exposed frames which
-	 * we don't want shown.
-	 */
-	return 2;
-}
-
-unsigned int CamHelperOv5640::mistrustFramesStartup() const
-{
-	/*
-	 * First couple of frames are under-exposed and are no good for control
-	 * algos.
-	 */
-	return 2;
-}
-
-unsigned int CamHelperOv5640::mistrustFramesModeSwitch() const
-{
-	/*
-	 * First couple of frames are under-exposed even after a simple
-	 * mode switch, and are no good for control algos.
-	 */
-	return 2;
 }
 
 static CamHelper *create()
