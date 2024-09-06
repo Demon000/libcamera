@@ -1058,20 +1058,25 @@ Transform CameraSensor::computeTransform(Orientation *orientation) const
  *
  * \return The Bayer order produced by the sensor when the Transform is applied
  */
+BayerFormat::Order CameraSensor::bayerOrder(Transform t, BayerFormat bayerFormat) const
+{
+	if (!flipsAlterBayerOrder_)
+		return bayerFormat.order;
+
+	/*
+	 * Apply the transform to the native (i.e. untransformed) Bayer order,
+	 * using the rest of the Bayer format supplied by the caller.
+	 */
+	return bayerFormat.transform(t).order;
+}
+
 BayerFormat::Order CameraSensor::bayerOrder(Transform t) const
 {
 	/* Return a defined by meaningless value for non-Bayer sensors. */
 	if (!bayerFormat_)
 		return BayerFormat::Order::BGGR;
 
-	if (!flipsAlterBayerOrder_)
-		return bayerFormat_->order;
-
-	/*
-	 * Apply the transform to the native (i.e. untransformed) Bayer order,
-	 * using the rest of the Bayer format supplied by the caller.
-	 */
-	return bayerFormat_->transform(t).order;
+	return bayerOrder(t, *bayerFormat_);
 }
 
 /**

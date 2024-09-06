@@ -70,6 +70,7 @@ public:
 	int sensorInfo(IPACameraSensorInfo *info) const;
 	Transform computeTransform(Orientation *orientation) const;
 	BayerFormat::Order bayerOrder(Transform t) const;
+	BayerFormat::Order bayerOrder(Transform t, BayerFormat bayerFormat) const;
 
 	const ControlInfoMap &controls() const;
 	ControlList getControls(const std::vector<uint32_t> &ids);
